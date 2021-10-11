@@ -1,0 +1,81 @@
+def on_button_pressed_a():
+    basic.show_string("DEBUT TIMER")
+    basic.pause(5000)
+    strip.show_color(neopixel.colors(NeoPixelColors.GREEN))
+    music.play_tone(440, music.beat(BeatFraction.WHOLE))
+    basic.show_string("FIN TIMER")
+input.on_button_pressed(Button.A, on_button_pressed_a)
+
+temperature = 0
+flamme = 0
+strip: neopixel.Strip = None
+strip = neopixel.create(DigitalPin.P3, 10, NeoPixelMode.RGB)
+strip.set_brightness(255)
+basic.show_string("INIT")
+ESP8266ThingSpeak.connect_wifi(SerialPin.P2,
+    SerialPin.P1,
+    BaudRate.BAUD_RATE115200,
+    "Freebox-608E54",
+    "tinniat-petasatus-volutant63-litus7")
+
+def on_forever():
+    global flamme
+    while pins.analog_read_pin(AnalogPin.P4) < 500:
+        flamme = 1
+        basic.pause(100)
+        basic.show_leds("""
+            . # # # .
+                        . # . . .
+                        . # # . .
+                        . # . . .
+                        . # . . .
+        """)
+        music.play_tone(262, music.beat(BeatFraction.WHOLE))
+        pins.digital_write_pin(DigitalPin.P5, 1)
+        for index in range(11):
+            strip.set_pixel_color(index, neopixel.colors(NeoPixelColors.RED))
+            strip.show()
+            basic.pause(50)
+            strip.clear()
+        basic.clear_screen()
+basic.forever(on_forever)
+
+def on_forever2():
+    global temperature
+    while pins.analog_read_pin(AnalogPin.P10) <= 500:
+        temperature = 1
+        basic.pause(500)
+        basic.show_leds("""
+            # # # # #
+                        . . # . .
+                        . . # . .
+                        . . # . .
+                        . . # . .
+        """)
+        pins.digital_write_pin(DigitalPin.P5, 1)
+        music.play_tone(330, music.beat(BeatFraction.WHOLE))
+        for index2 in range(11):
+            strip.set_pixel_color(index2, neopixel.colors(NeoPixelColors.ORANGE))
+            strip.show()
+            basic.pause(50)
+            strip.clear()
+        basic.clear_screen()
+basic.forever(on_forever2)
+
+def on_forever3():
+    pass
+basic.forever(on_forever3)
+
+def on_forever4():
+    ESP8266ThingSpeak.connect_thing_speak("api.thingspeak.com",
+        "9X7JCUB1DY2E83PP",
+        pins.analog_read_pin(AnalogPin.P10),
+        pins.analog_read_pin(AnalogPin.P4),
+        input.temperature(),
+        0,
+        0,
+        0,
+        0,
+        0)
+    basic.pause(1000)
+basic.forever(on_forever4)
